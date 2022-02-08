@@ -15,4 +15,6 @@
     <string name="glide">Glide</string>
     <string name="load_app">LoadApp</string>
     <string name="retrofit_option">Retrofit</string>
+    <string name="please_select_option">Please select an option</string>
+    <string name="notification_channel_description">LoadApp Channel Description</string>
 </resources>

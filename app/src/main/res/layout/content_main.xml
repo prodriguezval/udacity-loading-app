@@ -42,6 +42,7 @@
                 android:layout_height="wrap_content"
                 android:padding="8dp"
                 android:text="@string/glide"
+                android:onClick="onRadioButtonClicked"
                 android:textSize="@dimen/default_text_size" />
 
             <RadioButton
@@ -50,6 +51,7 @@
                 android:layout_height="wrap_content"
                 android:padding="8dp"
                 android:text="@string/load_app"
+                android:onClick="onRadioButtonClicked"
                 android:textSize="@dimen/default_text_size" />
 
             <RadioButton
@@ -58,6 +60,7 @@
                 android:layout_height="wrap_content"
                 android:padding="8dp"
                 android:text="@string/retrofit_option"
+                android:onClick="onRadioButtonClicked"
                 android:textSize="@dimen/default_text_size" />
 
         </RadioGroup>

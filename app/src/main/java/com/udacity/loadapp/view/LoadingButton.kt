@@ -8,7 +8,6 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
 import com.udacity.R
-import java.util.*
 import kotlin.properties.Delegates
 
 class LoadingButton @JvmOverloads constructor(
@@ -28,15 +27,31 @@ class LoadingButton @JvmOverloads constructor(
     private var widthSize = 0
     private var heightSize = 0
 
-    private val valueAnimator = ValueAnimator()
+    private var valueAnimator = ValueAnimator.ofInt(0, 360).setDuration(2000)
 
-    private var buttonState: ButtonState by Delegates.observable<ButtonState>(ButtonState.Completed) { p, old, new ->
 
+    private var textToDraw = "";
+    private var progress = 0
+    private var loadingState = 0;
+    var buttonState: ButtonState by Delegates.observable<ButtonState>(ButtonState.Completed) { _, old, new ->
+        when (new) {
+            ButtonState.Loading -> {
+                textToDraw = resources.getString(R.string.button_loading)
+                valueAnimator.start()
+            }
+            ButtonState.Completed -> {
+                textToDraw = resources.getString(R.string.button_name)
+                valueAnimator.cancel()
+
+                progress = 0
+            }
+        }
+
+        invalidate()
     }
-    private var textToDraw = context.getString(R.string.download).toUpperCase(Locale.ENGLISH)
-    private val textRect = Rect()
 
     init {
+        buttonState = ButtonState.Completed
         val typedArray = context.theme.obtainStyledAttributes(
             attrs,
             R.styleable.LoadingButton,
@@ -64,6 +79,16 @@ class LoadingButton @JvmOverloads constructor(
         }
 
         typedArray.recycle()
+        // setup animation
+        valueAnimator.apply {
+            addUpdateListener {
+                progress = it.animatedValue as Int
+                invalidate()
+            }
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.RESTART
+        }
+
     }
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -75,27 +100,31 @@ class LoadingButton @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-        canvas?.let {
-            // Save canvas
-            it.save()
 
-            // Clip canvas corners to form a rounded button
-            it.clipPath(cornerPath)
+        // button background
+        paint.color = primaryBackgroundColor
+        canvas?.drawRect(0f, 0f, widthSize.toFloat(), heightSize.toFloat(), paint)
 
-            // Draw button background color
-            it.drawColor(primaryBackgroundColor)
+        // loading button
+        paint.color = secondaryBackgroundColor
+        canvas?.drawRect(0f, 0f, widthSize * progress / 360f, heightSize.toFloat(), paint)
 
-            paint.getTextBounds(textToDraw, 0, textToDraw.length, textRect)
-            val textX = width / 2f - textRect.width() / 2f
-            val textY = height / 2f + textRect.height() / 2f - textRect.bottom
-            val textOffset = 0
-            // Draw button text
-            paint.color = textColor
-            it.drawText(textToDraw, textX - textOffset, textY, paint)
+        // text
+        paint.color = textColor
+        canvas?.drawText(textToDraw, widthSize / 2.0f, heightSize / 2.0f + 30.0f, paint)
 
-            // Restore saved canvas
-            it.restore()
-        }
+        // circle
+        paint.color = circularProgressColor
+        canvas?.drawArc(
+            widthSize - 200f,
+            50f,
+            widthSize - 100f,
+            150f,
+            0f,
+            progress.toFloat(),
+            true,
+            paint
+        )
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
