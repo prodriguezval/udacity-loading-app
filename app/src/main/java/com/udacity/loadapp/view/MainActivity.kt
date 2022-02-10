@@ -100,7 +100,7 @@ class MainActivity : AppCompatActivity() {
                 notificationManager.sendNotification(
                     CHANNEL_ID,
                     message,
-                    this@MainActivity
+                    applicationContext
                 )
             }
         }
