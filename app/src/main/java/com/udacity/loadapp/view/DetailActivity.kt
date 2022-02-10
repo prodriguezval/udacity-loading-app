@@ -7,25 +7,24 @@ import com.udacity.loadapp.util.clearNotification
 import kotlinx.android.synthetic.main.activity_detail.*
 import kotlinx.android.synthetic.main.content_detail.*
 
-class DetailActivity : AppCompatActivity() {
+const val EXTRA_NOTIFICATION_ID = "notification_id"
+const val EXTRA_DOWNLOAD_STATUS = "download_status"
+const val EXTRA_FILE_NAME = "file_name"
 
-    private var notificationId = -1
-    private lateinit var downloadStatus: String
-    private lateinit var fileName: String
+class DetailActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_detail)
         setSupportActionBar(toolbar)
-        loadExtras()
 
         // Remove the notification of the status bar
-        clearNotification(this, notificationId)
+        clearNotification(this, intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1))
 
         // initializing views
-        tv_file_name.text = fileName
+        tv_file_name.text = intent.getStringExtra(EXTRA_FILE_NAME)
 
-
+        val downloadStatus = intent.getStringExtra(EXTRA_DOWNLOAD_STATUS)
         tv_download_status.text = if (downloadStatus == "Success") {
             getString(R.string.success)
         } else {
@@ -41,30 +40,4 @@ class DetailActivity : AppCompatActivity() {
 
     }
 
-    private fun loadExtras() {
-        val extras = intent.extras
-        extras?.let {
-            notificationId = it.getInt(EXTRA_NOTIFICATION_ID)
-            downloadStatus = it.getString(EXTRA_DOWNLOAD_STATUS)!!
-            fileName = it.getString(EXTRA_FILE_NAME)!!
-        }
-    }
-
-    companion object {
-        private const val EXTRA_NOTIFICATION_ID = "channel_id"
-        private const val EXTRA_DOWNLOAD_STATUS = "download_status"
-        private const val EXTRA_FILE_NAME = "file_name"
-
-        fun withExtras(
-            notificationId: Int,
-            downloadStatus: String,
-            fileName: String
-        ): Bundle {
-            return Bundle().apply {
-                putInt(EXTRA_NOTIFICATION_ID, notificationId)
-                putString(EXTRA_DOWNLOAD_STATUS, downloadStatus)
-                putString(EXTRA_FILE_NAME, fileName)
-            }
-        }
-    }
 }

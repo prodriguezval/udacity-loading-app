@@ -10,6 +10,9 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.udacity.R
 import com.udacity.loadapp.view.DetailActivity
+import com.udacity.loadapp.view.EXTRA_DOWNLOAD_STATUS
+import com.udacity.loadapp.view.EXTRA_FILE_NAME
+import com.udacity.loadapp.view.EXTRA_NOTIFICATION_ID
 
 private const val NOTIFICATION_ID = 0
 fun NotificationManager.sendNotification(channelId: String, message: Message, context: Context) {
@@ -20,7 +23,7 @@ fun NotificationManager.sendNotification(channelId: String, message: Message, co
         .setContentText(message.content)
         .addAction(
             NotificationCompat.Action(
-                0,
+                R.drawable.ic_assistant_black_24dp,
                 context.getString(R.string.title_activity_detail),
                 detailsIntent
             )
@@ -60,18 +63,14 @@ fun clearNotification(context: Context, notificationId: Int) {
 private fun createDetailsIntent(message: Message, context: Context): PendingIntent? {
     val notifyIntent = Intent(context, DetailActivity::class.java)
     notifyIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-    notifyIntent.putExtras(
-        DetailActivity.withExtras(
-            NOTIFICATION_ID,
-            message.content,
-            message.title
-        )
-    )
+    notifyIntent.putExtra(EXTRA_NOTIFICATION_ID, NOTIFICATION_ID)
+    notifyIntent.putExtra(EXTRA_DOWNLOAD_STATUS, message.content)
+    notifyIntent.putExtra(EXTRA_FILE_NAME, message.title)
 
     return PendingIntent.getActivity(
         context,
         1000,
         notifyIntent,
-        PendingIntent.FLAG_UPDATE_CURRENT
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
 }
