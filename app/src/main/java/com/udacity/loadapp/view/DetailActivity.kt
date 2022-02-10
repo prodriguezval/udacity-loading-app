@@ -22,18 +22,17 @@ class DetailActivity : AppCompatActivity() {
         clearNotification(this, intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1))
 
         // initializing views
-        tv_file_name.text = intent.getStringExtra(EXTRA_FILE_NAME)
+        fileNameValue.text = intent.getStringExtra(EXTRA_FILE_NAME)
 
         val downloadStatus = intent.getStringExtra(EXTRA_DOWNLOAD_STATUS)
-        tv_download_status.text = if (downloadStatus == "Success") {
+        statusValue.text = if (downloadStatus == "Success") {
             getString(R.string.success)
         } else {
             getString(R.string.fail)
         }
-        layout_details.transitionToEnd()
 
         // back button
-        btn_back.setOnClickListener {
+        button.setOnClickListener {
             finish()
         }
 
