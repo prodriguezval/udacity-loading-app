@@ -1,7 +1,6 @@
 package com.udacity.loadapp.view
 
 import android.app.DownloadManager
-import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
@@ -17,6 +16,10 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import com.udacity.R
+import com.udacity.loadapp.util.Channel
+import com.udacity.loadapp.util.Message
+import com.udacity.loadapp.util.createChannel
+import com.udacity.loadapp.util.sendNotification
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 
@@ -38,26 +41,68 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         registerReceiver(receiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = Channel(
+                CHANNEL_ID,
+                getString(R.string.notification_channel_name),
+                getString(R.string.notification_channel_description)
+            )
+            createChannel(channel, this)
+        }
         custom_button.setOnClickListener {
-            if (selectedURL != null) {
-                custom_button.buttonState = ButtonState.Loading
-                download()
+            onButtonClicked()
+        }
+    }
 
-            } else {
-                val toast = Toast.makeText(
-                    applicationContext,
-                    getString(R.string.please_select_option),
-                    Toast.LENGTH_LONG
-                )
-                toast.show()
-            }
+    private fun onButtonClicked() {
+        if (selectedURL != null) {
+            custom_button.buttonState = ButtonState.Loading
+            download()
+
+        } else {
+            val toast = Toast.makeText(
+                applicationContext,
+                getString(R.string.please_select_option),
+                Toast.LENGTH_LONG
+            )
+            toast.show()
         }
     }
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
+            custom_button.buttonState = ButtonState.Completed
+
+            val downloadManager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+
+            val query = DownloadManager.Query()
+            query.setFilterById(id!!)
+
+            val cursor = downloadManager.query(query)
+            if (cursor.moveToFirst()) {
+                val status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))
+
+                var downloadStatus = "Fail"
+                if (DownloadManager.STATUS_SUCCESSFUL == status) {
+                    downloadStatus = "Success"
+                }
+
+                val toast = Toast.makeText(
+                    applicationContext,
+                    getString(R.string.notification_description),
+                    Toast.LENGTH_LONG
+                )
+                toast.show()
+
+                val notificationManager = getSystemService(NotificationManager::class.java)
+                val message = Message(selectedFileName!!, downloadStatus)
+                notificationManager.sendNotification(
+                    CHANNEL_ID,
+                    message,
+                    this@MainActivity
+                )
+            }
         }
     }
 
@@ -99,23 +144,6 @@ class MainActivity : AppCompatActivity() {
         private const val RETROFIT_URL =
             "https://github.com/square/retrofit/archive/refs/heads/master.zip"
 
-        private const val CHANNEL_ID = "channelId"
-    }
-
-    private fun createChannel(channelId: String, channelName: String) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationChannel = NotificationChannel(
-                channelId,
-                channelName,
-                NotificationManager.IMPORTANCE_HIGH
-            )
-
-            notificationChannel.description = getString(R.string.notification_channel_description)
-
-            val notificationManager = getSystemService(
-                NotificationManager::class.java
-            )
-            notificationManager.createNotificationChannel(notificationChannel)
-        }
+        private const val CHANNEL_ID = "download_channel"
     }
 }
